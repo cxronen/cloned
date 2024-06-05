@@ -168,7 +168,6 @@ declare module 'vue' {
     VCheckboxBtn: typeof import('vuetify/components')['VCheckboxBtn']
     VChip: typeof import('vuetify/components')['VChip']
     VCol: typeof import('vuetify/components')['VCol']
-    VColorPicker: typeof import('vuetify/components')['VColorPicker']
     VCombobox: typeof import('vuetify/components')['VCombobox']
     VContainer: typeof import('vuetify/components')['VContainer']
     VDialog: typeof import('vuetify/components')['VDialog']

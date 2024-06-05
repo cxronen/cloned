@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { clientSettings } from '@/store/client-settings';
 import { playerElement } from '@/store/player-element'
 import { mediaElementRef } from '@/store';
