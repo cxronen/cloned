@@ -28,7 +28,8 @@ const currentSubtitle = ref(undefined);
  */
 let lastIndex = 0; // Variable to store the last found index of the subtitle
 const findCurrentSubtitle = (data, currentTime) => {
-  if (!data) return
+  if (!data) return;
+  if (!currentTime) return;
   
   // Start searching from the last found index
   for (let i = lastIndex; i < data.length; i++) {
@@ -38,7 +39,7 @@ const findCurrentSubtitle = (data, currentTime) => {
       lastIndex = i; // Update the last found index
       return subtitle;
     } else if (subtitle.start > currentTime) {
-      break
+      break;
     }
   }
 
@@ -50,22 +51,18 @@ const findCurrentSubtitle = (data, currentTime) => {
       lastIndex = i; // Update the last found index
       return subtitle;
     } else if (subtitle.start > currentTime) {
-      break
+      break;
     }
   }
-
-  return undefined;
 };
 /**
  * Function to update the current subtitle based on the current time of the media element.
  */
 const updateSubtitle = () => {
+  const currentSubtitleTrackData = playerElement.currentExternalSubtitleTrack?.parsed;
   const currentTime = mediaElementRef.value?.currentTime;
 
-  if (currentTime) {
-    const sub = findCurrentSubtitle(playerElement.currentExternalSubtitleTrack?.parsed, currentTime);
-    currentSubtitle.value = sub;
-  }
+  currentSubtitle.value = findCurrentSubtitle(currentSubtitleTrackData, currentTime);
 };
 /**
  * onMounted lifecycle hook to setup event listeners and initialize the subtitle update mechanism.
