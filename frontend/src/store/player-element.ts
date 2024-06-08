@@ -137,7 +137,7 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
   /**
    * Logic for applying custom subtitle track.
    * 
-   * Returns flase if subtitle devliery method isn't external
+   * Returns false if subtitle devliery method isn't external
    * or if device is iOS/Android.
    */
   private get useCustomSubtitleTrack(): boolean {
