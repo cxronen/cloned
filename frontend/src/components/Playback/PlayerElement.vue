@@ -15,9 +15,9 @@
         :class="{ stretched: playerElement.isStretched.value }"
         @loadeddata="onLoadedData">
           <track
-            kind="subtitles"
             v-for="sub in playbackManager.currentItemVttParsedSubtitleTracks"
             :key="`${playbackManager.currentSourceUrl}-${sub.srcIndex}`"
+            kind="subtitles"
             :label="sub.label"
             :srclang="sub.srcLang"
             :src="sub.src" >
