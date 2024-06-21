@@ -158,7 +158,7 @@ export async function parseSsaFile(src: string) {
 
     if (!ssaText) return;
 
-    // Dialouge lines
+    // Dialogue lines
     const ssaLines = ssaText.split('[Events]')[1].split('\n');
 
     const subtitles: ParsedSubtitleTrack = [];
