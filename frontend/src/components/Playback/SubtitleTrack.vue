@@ -9,22 +9,23 @@
           :style="subtitleStyle">
           <JSafeHtml
           v-if="currentSubtitle !== undefined"
-          :html="currentSubtitle.text" />
+          :html="currentSubtitle.text"/>
           {{ previewText }}
         </span>
     </div>
 </template>
 
-<script setup>
-import { computed, defineProps } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
 import { clientSettings } from '@/store/client-settings';
 import { mediaControls } from '@/store';
 import { playerElement } from '@/store/player-element';
 import { isNil } from '@/utils/validation';
+import type { ParsedSubtitleTrack } from '@/utils/subtitles';
 
-defineProps({
-  previewText: String
-});
+defineProps<{
+  previewText?: string;
+}>();
 
 /**
  * Function to find the current subtitle based on the current time.
@@ -32,10 +33,7 @@ defineProps({
  * If not found, it searches from the beginning of the list.
  */
 let lastIndex = 0; // Variable to store the last found index of the subtitle
-const findCurrentSubtitle = (data, currentTime) => {
-  if (!data) { return; }
-  if (!currentTime) { return; }
-
+const findCurrentSubtitle = (data: ParsedSubtitleTrack, currentTime: number) => {
   // Start searching from the last found index
   for (let i = lastIndex; i < data.length; i++) {
     const subtitle = data[i];
@@ -96,15 +94,13 @@ const subtitleStyle = computed(() => {
 
 <style scoped>
 .subtitle-track {
-	position: absolute;
-	text-align: center;
-	width: 100%;
+  position: absolute;
+  text-align: center;
+  width: 100%;
   bottom: 0;
   left: 0;
 }
-
 .subtitle-track-text {
   display: inline-block;
-  white-space: break-spaces;
 }
 </style>
