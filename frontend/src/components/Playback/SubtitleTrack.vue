@@ -6,19 +6,25 @@
         :src="playerElement.currentExternalSubtitleTrack?.src" >
         <span
           class="subtitle-track-text"
+          :style="subtitleStyle">
+          <JSafeHtml
           v-if="currentSubtitle !== undefined"
-          v-html="currentSubtitle.text"
-          :style="clientSettings.subtitleStyle">
-          </span>
+          :html="currentSubtitle.text" />
+          {{ previewText }}
+        </span>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, defineProps } from 'vue';
 import { clientSettings } from '@/store/client-settings';
 import { mediaControls } from '@/store';
-import { playerElement } from '@/store/player-element'
+import { playerElement } from '@/store/player-element';
 import { isNil } from '@/utils/validation';
+
+defineProps({
+  previewText: String
+});
 
 /**
  * Function to find the current subtitle based on the current time.
@@ -27,9 +33,9 @@ import { isNil } from '@/utils/validation';
  */
 let lastIndex = 0; // Variable to store the last found index of the subtitle
 const findCurrentSubtitle = (data, currentTime) => {
-  if (!data) return;
-  if (!currentTime) return;
-  
+  if (!data) { return; }
+  if (!currentTime) { return; }
+
   // Start searching from the last found index
   for (let i = lastIndex; i < data.length; i++) {
     const subtitle = data[i];
@@ -43,9 +49,7 @@ const findCurrentSubtitle = (data, currentTime) => {
   }
 
   // Start searching from the beginning
-  for (let i = 0; i < data.length; i++) {
-    const subtitle = data[i];
-
+  for (const [i, subtitle] of data.entries()) {
     if (subtitle.start < currentTime && subtitle.end > currentTime) {
       lastIndex = i; // Update the last found index
       return subtitle;
@@ -57,12 +61,37 @@ const findCurrentSubtitle = (data, currentTime) => {
 /**
  * Update the current subtitle based on the current time of the media element.
  */
-const currentSubtitle = computed(() => 
-  !isNil(mediaControls.currentTime?.value)
+const currentSubtitle = computed(() =>
+  !isNil(mediaControls.currentTime.value)
   && !isNil(playerElement.currentExternalSubtitleTrack?.parsed)
     ? findCurrentSubtitle(playerElement.currentExternalSubtitleTrack.parsed, mediaControls.currentTime.value)
     : undefined
 );
+/**
+ * Computed style for subtitle text element
+ * reactive to client subtitle appearance settings
+ */
+const subtitleStyle = computed(() => {
+  const subtitleAppearance = clientSettings.subtitleAppearance;
+
+  return {
+    fontFamily: `${subtitleAppearance.fontFamily} !important`,
+    fontSize: `${subtitleAppearance.fontSize}em`,
+    marginBottom: `${subtitleAppearance.positionFromBottom}vh`,
+    backgroundColor: subtitleAppearance.backdrop ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+    padding: '10px',
+    color: 'white',
+    /**
+     * Unwrap stroke style if stroke is enabled
+     */
+    ...(subtitleAppearance.stroke && {
+      TextStrokeColor: 'black',
+      TextStrokeWidth: '7px',
+      textShadow: '2px 2px 15px black',
+      paintOrder: 'stroke fill'
+    })
+  };
+});
 </script>
 
 <style scoped>
@@ -71,6 +100,7 @@ const currentSubtitle = computed(() =>
 	text-align: center;
 	width: 100%;
   bottom: 0;
+  left: 0;
 }
 
 .subtitle-track-text {
