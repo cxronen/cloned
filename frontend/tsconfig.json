@@ -10,12 +10,14 @@
     "skipLibCheck": true,
     "noEmit": true,
     "isolatedModules": true,
+    "moduleDetection": "force",
     "useDefineForClassFields": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
     "experimentalDecorators": true,
     "removeComments": true,
     "verbatimModuleSyntax": true,
+    "tsBuildInfoFile": "../node_modules/.cache/tsconfig.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

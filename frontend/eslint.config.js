@@ -1,14 +1,16 @@
 import jsdoc from 'eslint-plugin-jsdoc';
 import unicorn from 'eslint-plugin-unicorn';
-import eslintImport from 'eslint-plugin-import';
+import eslintImportX from 'eslint-plugin-import-x';
 import fileProgress from 'eslint-plugin-file-progress';
 import js from '@eslint/js';
 import globals from 'globals';
 import vueScopedCSS from 'eslint-plugin-vue-scoped-css';
 import vue from 'eslint-plugin-vue';
+import i18n from '@intlify/eslint-plugin-vue-i18n';
 import { FlatCompat } from '@eslint/eslintrc';
-import { globifyGitIgnoreFile } from 'globify-gitignore';
+import gitignore from 'eslint-config-flat-gitignore';
 import stylistic from '@stylistic/eslint-plugin';
+import sonarjs from 'eslint-plugin-sonarjs';
 import tseslint from 'typescript-eslint';
 import jsonc from 'eslint-plugin-jsonc';
 
@@ -23,21 +25,28 @@ const compat = new FlatCompat({
   baseDirectory: import.meta.dirname
 });
 
-const gitignore = (await globifyGitIgnoreFile(`${import.meta.dirname}/..`)).map(l => l.glob);
 const flatArrayOfObjects = obj => Object.assign({}, ...obj);
 
 export default tseslint.config(
   /** Global settings */
-  js.configs.recommended,
-  unicorn.configs['flat/recommended'],
-  stylistic.configs.customize({
-    quotes: 'single',
-    semi: true,
-    commaDangle: 'never',
-    braceStyle: '1tbs',
-    arrowParens: false,
-    blockSpacing: true
-  }),
+  { ...js.configs.recommended,
+    name: '(eslint) Extended recommended rules'
+  },
+  {
+    ...unicorn.configs['flat/recommended'],
+    name: '(unicorn) Extended rules'
+  },
+  {
+    ...stylistic.configs.customize({
+      quotes: 'single',
+      semi: true,
+      commaDangle: 'never',
+      braceStyle: '1tbs',
+      arrowParens: false,
+      blockSpacing: true
+    }),
+    name: '(@stylistic) Extended rules'
+  },
   /** File progress plugin */
   {
     name: 'Progress reporting',
@@ -65,6 +74,12 @@ export default tseslint.config(
         ...globals.browser
       }
     },
+    settings: {
+      'vue-i18n': {
+        localeDir: 'locales/en.json',
+        messageSyntaxVersion: '^9.0.0'
+      }
+    },
     rules: {
       'no-empty': ['error', { allowEmptyCatch: true }],
       'no-extend-native': 'error',
@@ -78,7 +93,11 @@ export default tseslint.config(
       'unicorn/filename-case': 'off',
       'unicorn/consistent-function-scoping': 'off',
       'unicorn/prevent-abbreviations': 'off',
-      'unicorn/no-await-expression-member': 'off'
+      'unicorn/no-await-expression-member': 'off',
+      /**
+       * See https://github.com/jellyfin/jellyfin-vue/pull/2361
+       */
+      'unicorn/explicit-length-check': 'off'
     }
   },
   /** Common TypeScript rules */
@@ -118,34 +137,27 @@ export default tseslint.config(
     name: '(you-dont-need-lodash) Extended rules',
     files: vueAndTsFiles
   },
-  /*
-   * {
-   *   ...flatArrayOfObjects(compat.extends('plugin:promise/recommended')),
-   *   name: '(promise) Extended rules',
-   *   files: vueAndTsFiles
-   * },
-   * {
-   *   name: '(promise) Custom rule configs',
-   *   files: vueAndTsFiles,
-   *   rules: {
-   *     'promise/prefer-await-to-callbacks': 'error',
-   *     'promise/prefer-await-to-then': 'error',
-   *   }
-   * },
-   * {
-   *   ...flatArrayOfObjects(compat.extends('plugin:import/typescript')),
-   *   name: '(import) Extended rules (TypeScript)',
-   *   files: vueAndTsFiles
-   * },
-   */
+  {
+    ...flatArrayOfObjects(compat.extends('plugin:promise/recommended')),
+    name: '(promise) Extended rules',
+    files: vueAndTsFiles
+  },
+  {
+    name: '(promise) Custom rule configs',
+    files: vueAndTsFiles,
+    rules: {
+      'promise/prefer-await-to-callbacks': 'error',
+      'promise/prefer-await-to-then': 'error'
+    }
+  },
   {
     name: '(import) Custom rule configs',
     files: vueAndTsFiles,
     plugins: {
-      import: eslintImport
+      'import-x': eslintImportX
     },
     rules: {
-      'import/no-extraneous-dependencies': [
+      'import-x/no-extraneous-dependencies': [
         'error',
         {
           devDependencies: ['*.config.ts', 'scripts/**/*.ts'],
@@ -154,25 +166,19 @@ export default tseslint.config(
           bundledDependencies: false
         }
       ],
-      'import/order': 'error',
-      'import/no-cycle': 'error',
-      'import/no-nodejs-modules': 'error',
-      'import/no-duplicates': ['error', { 'prefer-inline': true, 'considerQueryString': true }],
+      'import-x/order': 'error',
+      'import-x/no-cycle': 'error',
+      'import-x/no-nodejs-modules': 'error',
+      'import-x/no-duplicates': ['error', { 'prefer-inline': true, 'considerQueryString': true }],
       // From the recommended preset
-      'import/named': 'error',
-      'import/export': 'error'
+      'import-x/named': 'error',
+      'import-x/export': 'error'
     }
   },
+  ...i18n.configs['flat/recommended'],
   {
-    ...flatArrayOfObjects(compat.extends('plugin:@intlify/vue-i18n/recommended')),
     name: '(@intlify/vue-i18n) Extended rules',
     files: vueAndTsFiles,
-    settings: {
-      'vue-i18n': {
-        localeDir: 'locales/en.json',
-        messageSyntaxVersion: '^9.0.0'
-      }
-    }
   },
   {
     name: '(@intlify/vue-i18n) Custom rule configs',
@@ -217,11 +223,12 @@ export default tseslint.config(
         fixStyle: 'inline-type-imports'
       }],
       '@typescript-eslint/explicit-member-accessibility': 'error',
-      '@typescript-eslint/no-empty-interface': ['error', { allowSingleExtends: true }]
+      '@typescript-eslint/no-empty-interface': ['error', { allowSingleExtends: true }],
+      '@typescript-eslint/no-non-null-assertion': 'off'
     }
   },
   {
-    ...flatArrayOfObjects(compat.extends('plugin:sonarjs/recommended')),
+    ...sonarjs.configs.recommended,
     name: 'SonarCloud recommended rules',
     files: vueAndTsFiles
   },
@@ -325,15 +332,11 @@ export default tseslint.config(
    * Extra files to include and ignores that should override all the others
    */
   {
-    name: 'Extra files to lint',
-    files: ['index.html']
-  },
-  {
     name: 'Ignored files',
     ignores: [
       'types/global/routes.d.ts',
       'types/global/components.d.ts',
-      ...gitignore
+      ...gitignore().ignores
     ]
   }
 );
