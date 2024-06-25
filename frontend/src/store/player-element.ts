@@ -8,18 +8,18 @@ import JASSUB from 'jassub';
 import jassubWorker from 'jassub/dist/jassub-worker.js?url';
 import jassubWasmUrl from 'jassub/dist/jassub-worker.wasm?url';
 import { computed, nextTick, shallowRef, watch } from 'vue';
+import { SubtitleDeliveryMethod } from '@jellyfin/sdk/lib/generated-client/models/subtitle-delivery-method';
 import { playbackManager, type PlaybackExternalTrack } from './playback-manager';
 import { isArray, isNil, sealed } from '@/utils/validation';
 import { mediaElementRef } from '@/store';
 import { CommonStore } from '@/store/super/common-store';
 import { router } from '@/plugins/router';
 import { remote } from '@/plugins/remote';
-import { SubtitleDeliveryMethod } from '@jellyfin/sdk/lib/generated-client/models/subtitle-delivery-method';
 import { isMobile } from '@/utils/browser-detection';
 import { parseSsaFile, parseVttFile, type ParsedSubtitleTrack } from '@/utils/subtitles';
 
 interface SubtitleExternalTrack extends PlaybackExternalTrack {
-  parsed?: ParsedSubtitleTrack
+  parsed?: ParsedSubtitleTrack;
 }
 
 /**
@@ -27,7 +27,7 @@ interface SubtitleExternalTrack extends PlaybackExternalTrack {
  */
 interface PlayerElementState {
   isStretched: boolean;
-  currentExternalSubtitleTrack?: SubtitleExternalTrack
+  currentExternalSubtitleTrack?: SubtitleExternalTrack;
 }
 
 export const videoContainerRef = shallowRef<HTMLDivElement>();
@@ -52,11 +52,11 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
     }
   });
 
-  public get currentExternalSubtitleTrack(): PlayerElementState["currentExternalSubtitleTrack"] {
-    return this._state.currentExternalSubtitleTrack
+  public get currentExternalSubtitleTrack(): PlayerElementState['currentExternalSubtitleTrack'] {
+    return this._state.currentExternalSubtitleTrack;
   }
 
-  private set currentExternalSubtitleTrack(newVal: PlayerElementState["currentExternalSubtitleTrack"]) {
+  private set currentExternalSubtitleTrack(newVal: PlayerElementState['currentExternalSubtitleTrack']) {
     this._state.currentExternalSubtitleTrack = newVal;
   }
 
@@ -124,36 +124,38 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
   private get usingExternalVttSubtitles(): boolean {
     return !isNil(playbackManager.currentSubtitleTrack)
       && playbackManager.currentSubtitleTrack.DeliveryMethod === SubtitleDeliveryMethod.External
-      && playbackManager.currentSubtitleTrack.Codec !== "ass"
-      && playbackManager.currentSubtitleTrack.Codec !== "ssa"
+      && playbackManager.currentSubtitleTrack.Codec !== 'ass'
+      && playbackManager.currentSubtitleTrack.Codec !== 'ssa';
   }
 
   private get usingExternalSsaSubtitles(): boolean {
     return !isNil(playbackManager.currentSubtitleTrack)
       && playbackManager.currentSubtitleTrack.DeliveryMethod === SubtitleDeliveryMethod.External
-      && (playbackManager.currentSubtitleTrack.Codec === "ssa" || playbackManager.currentSubtitleTrack.Codec === "ass")
+      && (playbackManager.currentSubtitleTrack.Codec === 'ssa' || playbackManager.currentSubtitleTrack.Codec === 'ass');
   }
 
   /**
    * Logic for applying custom subtitle track.
-   * 
+   *
    * Returns false if subtitle devliery method isn't external
    * or if device is iOS/Android.
    */
   private get useCustomSubtitleTrack(): boolean {
     return !isNil(playbackManager.currentSubtitleTrack)
       && playbackManager.currentSubtitleTrack.DeliveryMethod === SubtitleDeliveryMethod.External
-      && !isMobile()
+      && !isMobile();
   }
 
   /**
    * Applies VTT (WebVTT) subtitles to the media element.
-   * 
+   *
    * This function searches for the VTT track associated with the
    * currently selected subtitle.
    */
   private readonly _applyVttSubtitles = async (): Promise<void> => {
-    if (!mediaElementRef.value) return
+    if (!mediaElementRef.value) {
+      return;
+    }
 
     /**
      * Finding (if it exists) the SSA track associated to the newly picked subtitle
@@ -165,8 +167,8 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
     /**
      * If VTT found, applying it
      */
-    if (vtt?.src && vtt.srcIndex !== -1 && mediaElementRef.value.textTracks[vtt.srcIndex]) {
-      this.currentExternalSubtitleTrack = vtt
+    if (vtt?.src && vtt.srcIndex !== -1) {
+      this.currentExternalSubtitleTrack = vtt;
 
       /**
        * Check if client is able to display custom subtitle track
@@ -179,16 +181,18 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
         mediaElementRef.value.textTracks[vtt.srcIndex].mode = 'showing';
       }
     }
-  }
+  };
 
   /**
    * Applies SSA (SubStation Alpha) subtitles to the media element.
-   * 
+   *
    * This function searches for the SSA track associated with the
    * currently selected subtitle.
    */
   private readonly _applySsaSubtitles = async (): Promise<void> => {
-    if (!mediaElementRef.value) return
+    if (!mediaElementRef.value) {
+      return;
+    }
     const serverAddress = remote.sdk.api?.basePath;
 
     /**
@@ -202,7 +206,7 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
      * If SSA found, applying it
      */
     if (ssa?.src) {
-      this.currentExternalSubtitleTrack = ssa
+      this.currentExternalSubtitleTrack = ssa;
 
       /**
        * Check if client is able to display custom subtitle track
@@ -216,17 +220,17 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
           = playbackManager.currentMediaSource?.MediaAttachments?.filter(a =>
             this._isSupportedFont(a.MimeType)
           )
-          .map((a) => {
-            if (a.DeliveryUrl && serverAddress) {
-              return `${serverAddress}${a.DeliveryUrl}`;
-            }
-          })
-          .filter((a): a is string => a !== undefined) ?? [];
+            .map((a) => {
+              if (a.DeliveryUrl && serverAddress) {
+                return `${serverAddress}${a.DeliveryUrl}`;
+              }
+            })
+            .filter((a): a is string => a !== undefined) ?? [];
 
         this._setSsaTrack(ssa.src, attachedFonts);
       }
     }
-  }
+  };
 
   /**
    * Applies the current subtitle from the playbackManager store
@@ -236,7 +240,9 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
    * to the function to apply that codec
    */
   public readonly applyCurrentSubtitle = async (): Promise<void> => {
-    if (!mediaElementRef.value) return
+    if (!mediaElementRef.value) {
+      return;
+    }
 
     /**
      * Clear VTT and SSA subs first
@@ -255,9 +261,9 @@ class PlayerElementStore extends CommonStore<PlayerElementState> {
      * Check which subtitle codec is being used and apply
      */
     if (this.usingExternalVttSubtitles) {
-      this._applyVttSubtitles()
+      void this._applyVttSubtitles();
     } else if (this.usingExternalSsaSubtitles) {
-      this._applySsaSubtitles()
+      void this._applySsaSubtitles();
     }
   };
 
